@@ -1,4 +1,4 @@
-# Groq Agents Assignment 1
+# GenAI Assignment - 2 | Groq Muti-Agent
 
 ## Overview
 This project demonstrates a multi-agent Quality Assurance (QA) workflow built using Groq, LangGraph, and LnagChain.
