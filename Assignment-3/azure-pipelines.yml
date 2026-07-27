@@ -1,0 +1,48 @@
+﻿trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: NodeTool@0
+    displayName: 'Install Node.js 20'
+    inputs:
+      versionSpec: '20.x'
+
+  - script: npm install
+    displayName: 'Install npm dependencies'
+
+  - script: npx playwright install --with-deps
+    displayName: 'Install Playwright browsers'
+
+  - script: npx playwright test --reporter=html,junit
+    displayName: 'Execute Playwright tests'
+    continueOnError: true
+
+  - task: PublishTestResults@2
+    displayName: 'Publish JUnit test results'
+    condition: always()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/test-results/*.xml'
+      failTaskOnFailedTests: true
+      searchFolder: '$(System.DefaultWorkingDirectory)'
+
+  - script: |
+      mkdir -p "$(Build.ArtifactStagingDirectory)/playwright-report"
+      if [ -d "playwright-report" ]; then
+        cp -R playwright-report/* "$(Build.ArtifactStagingDirectory)/playwright-report/"
+      fi
+    displayName: 'Stage Playwright HTML report'
+    condition: always()
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Playwright HTML report artifact'
+    condition: always()
+    inputs:
+      targetPath: '$(Build.ArtifactStagingDirectory)/playwright-report'
+      artifact: 'playwright-report'
+      publishLocation: 'pipeline'
